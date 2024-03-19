@@ -1,0 +1,223 @@
+﻿Program.Sub.ScreenSU.Start
+Gui.Form..Create(BaseForm)
+Gui.Form..Caption("Ceridian Export")
+Gui.Form..Size(404,82)
+Gui.Form..MinX(0)
+Gui.Form..MinY(0)
+Gui.Form..Position(0,0)
+Gui.Form..AlwaysOnTop(False)
+Gui.Form..FontName("Tahoma")
+Gui.Form..FontSize(8.25)
+Gui.Form..ControlBox(True)
+Gui.Form..MaxButton(True)
+Gui.Form..MinButton(True)
+Gui.Form..MousePointer(0)
+Gui.Form..Moveable(True)
+Gui.Form..Sizeable(True)
+Gui.Form..ShowInTaskBar(True)
+Gui.Form..TitleBar(True)
+Gui.Form..Event(UnLoad,Form_UnLoad)
+Gui.Form.lbl1.Create(Label,"Save File As:",True,62,13,0,6,6,True,0,"Tahoma",8.25,,0,0)
+Gui.Form.lbl1.BorderStyle(0)
+Gui.Form.txtFilePath.Create(TextBox,"",True,281,20,0,6,23,True,0,"Tahoma",8.25,,1)
+Gui.Form.cmdFileBrw.Create(Button)
+Gui.Form.cmdFileBrw.Enabled(True)
+Gui.Form.cmdFileBrw.Visible(True)
+Gui.Form.cmdFileBrw.Zorder(0)
+Gui.Form.cmdFileBrw.Size(25,23)
+Gui.Form.cmdFileBrw.Position(291,22)
+Gui.Form.cmdFileBrw.Caption("^")
+Gui.Form.cmdFileBrw.FontName("Tahoma")
+Gui.Form.cmdFileBrw.FontSize(8.25)
+Gui.Form.cmdFileBrw.Event(Click,cmdFileBrw_Click)
+Gui.Form.cmdExport.Create(Button)
+Gui.Form.cmdExport.Enabled(True)
+Gui.Form.cmdExport.Visible(True)
+Gui.Form.cmdExport.Zorder(0)
+Gui.Form.cmdExport.Size(75,23)
+Gui.Form.cmdExport.Position(321,22)
+Gui.Form.cmdExport.Caption("Export")
+Gui.Form.cmdExport.FontName("Tahoma")
+Gui.Form.cmdExport.FontSize(8.25)
+Gui.Form.cmdExport.Event(Click,cmdExport_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+v.Global.sRunCYMD.Declare
+v.Global.sRunTime.Declare
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+Function.Intrinsic.UI.UsePixels ' Allows you to use Pixels instead of Twips throughout
+v.Local.sRet.Declare
+'Get Passed Variables:
+F.Intrinsic.String.Left(V.Passed.888888,8,V.Global.sRunCYMD)
+F.Intrinsic.String.Mid(V.Passed.888888,9,6,V.Global.sRunTime)
+'Check if Earning Codes exists.
+f.ODBC.Connection!con.OpenCompanyConnection
+	f.ODBC.Connection!con.ExecuteAndReturn("Select * from GCG_6561_EC", v.Local.sRet)
+	f.Intrinsic.Control.If(v.Local.sRet.Trim, =, "")
+		f.ODBC.Connection!con.Execute("Insert into  GCG_6561_EC (GSS_EC, CER_CN) Values ('RT', '001')")
+		f.ODBC.Connection!con.Execute("Insert into  GCG_6561_EC (GSS_EC, CER_CN) Values ('OT', '062')")
+		f.ODBC.Connection!con.Execute("Insert into  GCG_6561_EC (GSS_EC, CER_CN) Values ('DT', '063')")
+		f.ODBC.Connection!con.Execute("Insert into  GCG_6561_EC (GSS_EC, CER_CN) Values ('HT', '040')")
+		f.ODBC.Connection!con.Execute("Insert into  GCG_6561_EC (GSS_EC, CER_CN) Values ('E3', '032')")
+		f.ODBC.Connection!con.Execute("Insert into  GCG_6561_EC (GSS_EC, CER_CN) Values ('E4', '004')")
+		f.ODBC.Connection!con.Execute("Insert into  GCG_6561_EC (GSS_EC, CER_CN) Values ('E5', '005')")
+		f.ODBC.Connection!con.Execute("Insert into  GCG_6561_EC (GSS_EC, CER_CN) Values ('E6', '003')")
+		f.ODBC.Connection!con.Execute("Insert into  GCG_6561_EC (GSS_EC, CER_CN) Values ('E7', '040')")
+	f.Intrinsic.Control.EndIf
+f.ODBC.Connection!con.Close
+
+'Create Export Layout
+f.Data.Datatable.Create("exportDT", True)
+f.Data.Datatable.AddColumn("exportDT", "CompanyNum", "String", "G532")
+f.Data.Datatable.AddColumn("exportDT", "SSN", "String")
+f.Data.Datatable.AddColumn("exportDT", "EmployeeNum", "String")
+f.Data.Datatable.AddColumn("exportDT", "Dept", "String")
+f.Data.Datatable.AddColumn("exportDT", "LastName", "String")
+f.Data.Datatable.AddColumn("exportDT", "FirstName", "String")
+f.Data.Datatable.AddColumn("exportDT", "CategoryCode", "String", "E")
+f.Data.Datatable.AddColumn("exportDT", "CategoryNumber", "String")
+f.Data.Datatable.AddColumn("exportDT", "Hours", "String")
+f.Data.Datatable.AddColumn("exportDT", "Dollars", "String", "")
+
+gui.Form..Show
+Program.Sub.Main.End
+
+Program.Sub.ErrorMsg.Start
+v.Local.sError.Declare
+
+'Closes ODBC connection, default to connection : "con"
+f.Intrinsic.Control.If(v.ODBC!con.State, =, 1)
+	f.ODBC.Connection!con.Close
+f.Intrinsic.Control.EndIf
+
+'Generic Error message.
+f.Intrinsic.String.Build("Project GCG_6561_Ceridian_Export.g2u {0}{0}Subroutine: {1}{0}Error: {2} with Description: {3}", v.Ambient.NewLine, v.Args.CurrentSub, v.Ambient.ErrorNumber, v.Ambient.ErrorDescription, v.Local.sError)
+f.Intrinsic.UI.Msgbox(v.Local.sError)
+Program.Sub.ErrorMsg.End
+
+Program.Sub.Form_UnLoad.Start
+f.Intrinsic.Control.Try
+	'End Program.
+	f.Intrinsic.Control.End
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.Form_UnLoad.End
+
+Program.Sub.cmdFileBrw_Click.Start
+v.Local.sRet.Declare
+v.Local.sFile.Declare
+f.Intrinsic.Control.Try
+'Try something
+	'Create File Name
+	f.Intrinsic.String.Build("{1}\EntFiles\Payroll\G532_{0}.csv", v.Ambient.Date.PervasiveDate, v.Caller.GlobalDir, v.Local.sFile)
+	'File Browser
+	f.Intrinsic.UI.ShowSaveFileDialog(V.Local.sFile,"Comma Separated File|.csv",,V.Local.sRet)
+	f.Intrinsic.Control.If(v.Local.sRet, <>, "***CANCEL***")
+		gui.Form.txtFilePath.Text(v.Local.sRet)
+	f.Intrinsic.Control.EndIf
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdFileBrw_Click.End
+
+Program.Sub.cmdExport_Click.Start
+v.Local.sFile.Declare
+v.Local.sSQL.Declare
+v.Local.iCnt.Declare
+v.Local.sTmp.Declare
+v.Local.sNames.Declare
+v.Local.iRet.Declare
+v.Local.sEmp.Declare
+v.Local.sFT.Declare
+v.Local.sMT.Declare
+v.Local.sET.Declare
+v.Local.fHours.Declare
+f.Intrinsic.Control.Try
+'Try something
+	'Check if file is selected.
+	v.Local.sFile.Set(v.Screen.Form!txtFilePath.Text)
+	f.Intrinsic.Control.If(v.Local.sFile.Trim, =, "")
+		f.Intrinsic.UI.Msgbox("Please select a file location")
+		f.Intrinsic.Control.ExitSub
+	f.Intrinsic.Control.EndIf
+	'Get Export Data
+	f.ODBC.Connection!con.OpenCompanyConnection
+		'load all records from PYRL_LABOR_XFER
+		f.Intrinsic.String.Build("select a.Employee as EmployeeNum, a.Name, a.Dept, a.Type as CategoryNumber, a.EC, a.Hours, b.SOC_SEC_ENC from PYRL_LABOR_XFER a left join V_EMPLOYEE_MSTR b on a.employee = b.employee where a.RUN_CYMD = '{0}' and a.RUN_TIME = '{1}'", v.Global.sRunCYMD, v.Global.sRunTime, v.Local.sSQL)
+		f.Data.Datatable.CreateFromSQL("payRollDT", "con", v.Local.sSQL)	
+		'Add Extra columns
+		f.Data.Datatable.AddColumn("payRollDT", "SSN", "String")
+		f.Data.Datatable.AddColumn("payRollDT", "LastName", "String")
+		f.Data.Datatable.AddColumn("payRollDT", "FirstName", "String")
+	'Dictionary
+		'SSN
+'		f.Data.Dictionary.CreateFromSQL("ssnDict", "con", "Select Employee, SOC_SEC_ENC from V_EMPLOYEE_MSTR")
+'		f.Data.Dictionary.SetDefaultReturn("ssnDict", " ")
+'		f.Data.Datatable.FillFromDictionary("payRollDT", "ssnDict", "EmployeeNum", "SSN")
+'		f.Data.Dictionary.Close("ssnDict")
+		'Earning Codes
+		
+	'Loop Through to get Encryption and names
+		f.Intrinsic.Control.For(v.Local.iCnt, 0, v.DataTable.payRollDT.RowCount--, 1)
+			'Split Name
+			v.Local.sTmp.Set(v.DataTable.payRollDT(v.Local.iCnt).Name!FieldValTrim)
+			v.Local.sNames.RedimPreserve(0,0)
+			f.Intrinsic.String.Split(v.Local.sTmp, " ", v.Local.sNames)
+			'Decrypt
+'			f.Global.Encryption.Decrypt(v.DataTable.payRollDT(v.Local.iCnt).SOC_SEC_ENC!FieldVal, v.Local.sTmp)
+'			f.Intrinsic.String.Left(v.Local.sTmp, 3, v.Local.sFT)
+'			f.Intrinsic.String.Mid(v.Local.sTmp, 3, 4, v.Local.sMT)
+'			f.Intrinsic.String.Right(v.Local.sTmp, 4, v.Local.sET)
+'			f.Intrinsic.String.Build("{0}-{1}-{2}", v.Local.sFT, v.Local.sMT, v.Local.sET)
+			'Employees
+			v.Local.sEmp.Set(v.DataTable.payRollDT(v.Local.iCnt).EmployeeNum!FieldValTrim)
+			f.Intrinsic.String.Right(v.Local.sEmp, 4, v.Local.sEmp)
+			'Hours.
+			v.Local.fHours.Set(v.DataTable.payRollDT(v.Local.iCnt).Hours!FieldVal)
+			f.Intrinsic.Math.Round(v.Local.fHours, 1, v.Local.fHours)
+			'EC
+			v.Local.sTmp.Set(v.DataTable.payRollDT(v.Local.iCnt).CategoryNumber!FieldValTrim)
+			f.Intrinsic.Control.If(v.Local.sTmp.Trim, =, "EC")
+				v.Local.sET.Set(v.DataTable.payRollDT(v.Local.iCnt).EC!FieldValTrim)
+				f.Intrinsic.String.Right(v.Local.sET, 1, v.Local.sET)
+				f.Intrinsic.String.Build("E{0}", v.Local.sET, v.Local.sTmp)
+			f.Intrinsic.Control.EndIf
+			'Set Fields
+			f.Data.Datatable.SetValue("payRollDT", v.Local.iCnt, "EmployeeNum", v.Local.sEmp, "SSN", " ", "FirstName", v.Local.sNames(v.Local.sNames.LBound), "LastName", v.Local.sNames(v.Local.sNames.UBound), "Hours", v.Local.fHours, "CategoryNumber", v.Local.sTmp)
+		f.Intrinsic.Control.Next(v.Local.iCnt)
+	
+	
+		f.Data.Dictionary.CreateFromSQL("ecDict", "con", "Select * from GCG_6561_EC")
+		f.Data.Dictionary.SetDefaultReturn("ecDict", " ")
+		f.Data.Datatable.FillFromDictionary("payRollDT", "ecDict", "CategoryNumber", "CategoryNumber")
+		f.Data.Dictionary.Close("ecDict")
+	
+	f.ODBC.Connection!con.Close
+	'Merge
+	f.Data.Datatable.DeleteRow("exportDT")
+	f.Data.Datatable.AcceptChanges("exportDT")
+	f.Data.Datatable.Merge("payRollDT", "exportDT", false, 2)
+	f.Data.Datatable.AcceptChanges("exportDT")
+	f.Data.Datatable.Close("payRollDT")
+	'Export to CSV
+	f.Data.Datatable.SaveToCSV("exportDT", v.Local.sFile, True)
+	'Check if need to open
+	f.Intrinsic.UI.Msgbox("Do you want to Open File?", "Open File", 4, v.Local.iRet)
+	f.Intrinsic.Control.If(v.Local.iRet, =, 6)
+		f.Intrinsic.Task.ShellExecSync(v.Caller.Handle, "OPEN", v.Local.sFile, "", "", 5)
+	f.Intrinsic.Control.EndIf
+	'Close
+	f.Intrinsic.Control.End
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdExport_Click.End
+
+Program.Sub.Comments.Start
+${$5$}$3.0.0.0$}$1
+${$6$}$aanazco$}$20211214154641795$}$7aQAV3Tor/tR9bkuakHbuzQlHVuXCGOzWmgyCV8UX8jAJLR67tmfZUNs8XgbrIIoNXs7HZKn2hI=
+Program.Sub.Comments.End
