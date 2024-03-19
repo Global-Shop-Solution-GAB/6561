@@ -1,0 +1,4 @@
+CREATE TABLE "GCG_6561_EC" (
+ "GSS_EC" CHAR(2),
+ "CER_CN" CHAR(3) );
+
